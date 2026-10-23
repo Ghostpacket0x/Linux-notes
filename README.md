@@ -19,7 +19,6 @@ A beginner-friendly guide to the Linux commands I practised on **Kali Linux in a
 10. [Terminal multiplexing with tmux](#10-terminal-multiplexing-with-tmux)
 11. [Serving files over HTTP](#11-serving-files-over-http)
 12. [Troubleshooting log](#12-troubleshooting-log)
-13. [Key lessons](#key-lessons)
 
 ---
 
@@ -96,6 +95,22 @@ An archive packs many files into one file, which is useful for backups.
 | `zip -r <name>.zip <folder>` | Creates a zip file. `-r` includes subfolders | `zip -r backup.zip labs/` |
 | `unzip <file>.zip` | Extracts a zip file | `unzip backup.zip` |
 
+**Copying and syncing with rsync**
+
+`rsync` copies files like `cp`, but it only transfers what has changed, so repeat backups are fast. It can also copy to another computer over SSH.
+
+| Command | What it does | Example |
+|---|---|---|
+| `rsync -a <from>/ <to>/` | Archive mode: copies folders and keeps permissions, dates, and links | `rsync -a labs/ backup/` |
+| `rsync -v` | Verbose: shows each file as it is copied | `rsync -av labs/ backup/` |
+| `rsync -z` | Compresses data while it travels, which helps on slow connections | `rsync -avz labs/ backup/` |
+| `rsync -e ssh` | Sends the files through SSH to another machine | `rsync -a -e ssh labs/ user@192.168.1.10:/home/user/labs/` |
+| `rsync --delete` | Makes the destination an exact mirror by deleting files that are no longer in the source | `rsync -a --delete labs/ backup/` |
+
+- A slash at the end of the source (`labs/`) means "copy what is inside the folder". Without it, rsync copies the folder itself.
+- `--delete` removes files, so test first with `--dry-run`, which shows what would happen without doing it: `rsync -a --delete --dry-run labs/ backup/`.
+- Only copy to machines you own or have permission to use.
+
 ## 2. Viewing and editing text
 
 Most Linux settings and logs are plain text files. These commands let you read them, search them, and change them.
@@ -141,7 +156,17 @@ A **process** is a running program. These commands show what is running and what
 | `htop` | A friendlier version of `top` (you may need to install it) | `htop` |
 | `jobs` | Lists programs running in the background of this terminal | `jobs` |
 | `kill <PID>` | Asks a process to stop | `kill 1234` |
+| `kill -9 <PID>` | Force-stops a process that ignores a normal `kill`. Use it as a last resort, because the process gets no chance to clean up | `kill -9 1234` |
+| `kill -l` | Lists the signals that `kill` can send | `kill -l` |
+| `bg` | Resumes a paused job in the background | `bg` |
+| `fg <number>` | Brings a background or paused job back to the front. The number comes from `jobs` | `fg 1` |
 | `watch -n <seconds> <command>` | Repeats a command on a timer | `watch -n 5 free -h` |
+
+**Job control in practice**
+
+1. Start a program, then press `Ctrl+Z` to pause it.
+2. Type `jobs` to see your jobs and their numbers.
+3. Type `bg` to let the paused job carry on in the background, or `fg 1` to bring job number 1 back to the front.
 
 **Memory and system details**
 
@@ -208,6 +233,7 @@ These commands help you see how a machine talks to others. They are the basics o
 - `netstat` is old. `ss` is the modern replacement and gives the same kind of information.
 - `127.0.0.1` always means "this computer", so it is a safe address to practise `nmap` on.
 - Only scan machines you own or have written permission to test.
+- `rsync -e ssh` copies files to another machine over SSH. It is explained in section 1.
 
 ## 7. Users and groups
 
@@ -266,7 +292,7 @@ A package manager is like an app store for the terminal. It downloads, installs,
 | `sudo apt install <pkg>` | Installs software | `sudo apt install tree` |
 | `sudo apt remove <pkg>` | Removes software but keeps its settings | `sudo apt remove tree` |
 | `sudo apt purge <pkg>` | Removes software and its settings | `sudo apt purge tree` |
-| `-y` (added to the end) | Answers "yes" to the confirmation prompt automatically | `sudo apt install tree -y` |
+| `-y` (added to the end) | Answers "yes" to the confirmation prompt automatically | `sudo apt full-upgrade -y` |
 | `sudo apt autoremove` | Removes software that was only installed to support other software | `sudo apt autoremove` |
 | `sudo apt clean` | Deletes downloaded installer files to free space | `sudo apt clean` |
 | `apt search <word>` | Searches for packages | `apt search nmap` |
